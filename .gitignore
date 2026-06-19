@@ -1,0 +1,11 @@
+# Simulation files
+risc_sim.vvp
+risc_sim.vcd
+show.dot
+
+# Yosys / Graphviz intermediate outputs
+output/*.dot
+output/*.json
+output/yosys_run.log
+output/view_schematic.*
+output/risc_top.svg.new

@@ -134,59 +134,9 @@ Generate a clean, gate-level schematic using **Yosys** and **Graphviz**:
 ## 📊 Visual Diagrams & Schematics
 
 ### Pipeline Dataflow Diagram
-This flowchart illustrates the data paths, control registers, forwarding channels, and stalling signals across the 5-stage pipeline:
+This diagram illustrates the data paths, control registers, forwarding channels, and stalling signals across the 5-stage pipeline:
 
-```mermaid
-graph TD
-    %% Stages
-    subgraph IF [1. Fetch Stage]
-        PC[PC Register] --> |Address| IM[Instruction Memory]
-    end
-    
-    subgraph ID [2. Decode Stage]
-        IM --> |Instruction Word| IF_ID_IR[IF/ID Register]
-        IF_ID_IR --> |rsrc1 / rsrc2 / rdes| RF[Register File]
-    end
-    
-    subgraph EX [3. Execute Stage]
-        RF --> |Registers & Imm| ID_EX_Regs[ID/EX Registers]
-        ID_EX_Regs --> |Operand A| MuxA[Mux A]
-        ID_EX_Regs --> |Operand B| MuxB[Mux B]
-        MuxA --> |op1| ALU[ALU]
-        MuxB --> |op2| ALU
-    end
-    
-    subgraph MEM [4. Memory Stage]
-        ALU --> |ALUOut| EX_MEM_Regs[EX/MEM Registers]
-        EX_MEM_Regs --> |Address / Data| DM[Data Memory]
-    end
-    
-    subgraph WB [5. Writeback Stage]
-        DM --> |LMD| MEM_WB_Regs[MEM/WB Registers]
-        EX_MEM_Regs --> |ALUOut| MEM_WB_Regs
-        MEM_WB_Regs --> |Write Data| RF
-    end
-
-    %% Hazard Unit & Forwarding
-    HU[Hazard Unit]
-    EX_MEM_Regs --> |Forward ALUOut| HU
-    MEM_WB_Regs --> |Forward WriteData| HU
-    
-    HU --> |Forward Select A| MuxA
-    HU --> |Forward Select B| MuxB
-    HU --> |Stall / Bubble / Flush| PC
-    HU --> |Stall / Bubble / Flush| IF_ID_IR
-    HU --> |Stall / Bubble / Flush| ID_EX_Regs
-
-    %% Style definitions
-    classDef stageStyle fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef hwStyle fill:#bbf,stroke:#333,stroke-width:1px;
-    classDef hazStyle fill:#ffb,stroke:#333,stroke-width:2px;
-    
-    class IF,ID,EX,MEM,WB stageStyle;
-    class PC,RF,ALU,DM hwStyle;
-    class HU hazStyle;
-```
+![Pipeline Dataflow Diagram](output/data_flow.png)
 
 ---
 
@@ -195,26 +145,26 @@ graph TD
 Below are the synthesized gate-level circuit schematics for the top-level processor and each individual pipeline module:
 
 #### Processor Top-Level Diagram
-Displays the entire interconnected pipeline showing all stage boundaries:
-![Processor Top-Level](output/risc_top.png)
+Displays the entire interconnected pipeline showing all stage boundaries (render quality is sharp and zoomable in SVG):
+![Processor Top-Level](output/risc_top.svg)
 
 #### Sub-Module Schematics
 <details>
   <summary>🔍 Click to expand individual pipeline stage schematics</summary>
   
   ##### 1. Fetch Stage
-  ![Fetch Stage](output/fetch_stage.png)
+  ![Fetch Stage](output/fetch_stage.svg)
   
   ##### 2. Decode Stage
-  ![Decode Stage](output/decode_stage.png)
+  ![Decode Stage](output/decode_stage.svg)
   
   ##### 3. Execute Stage
-  ![Execute Stage](output/execute_stage.png)
+  ![Execute Stage](output/execute_stage.svg)
   
   ##### 4. Memory Stage
-  ![Memory Stage](output/memory_stage.png)
+  ![Memory Stage](output/memory_stage.svg)
   
   ##### 5. Hazard Unit
-  ![Hazard Unit](output/hazard_unit.png)
+  ![Hazard Unit](output/hazard_unit.svg)
 </details>
 
