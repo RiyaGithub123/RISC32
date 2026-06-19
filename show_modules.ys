@@ -1,0 +1,26 @@
+# ============================================================================
+# Yosys Script: Generate per-module diagrams (before flatten)
+# ============================================================================
+
+# Read all sources
+read_verilog fetch/fetch_stage.v
+read_verilog decode/decode_stage.v
+read_verilog execute/execute_stage.v
+read_verilog memory/memory_stage.v
+read_verilog hazard/hazard_unit.v
+read_verilog risc_processor.v
+
+# Elaborate
+hierarchy -top risc_processor
+proc
+opt
+
+# Show top-level (with submodules as boxes)
+show -format svg -prefix output/risc_top -width risc_processor
+
+# Show individual stage modules
+show -format svg -prefix output/fetch_stage -width fetch_stage
+show -format svg -prefix output/decode_stage -width decode_stage
+show -format svg -prefix output/execute_stage -width execute_stage
+show -format svg -prefix output/memory_stage -width memory_stage
+show -format svg -prefix output/hazard_unit -width hazard_unit

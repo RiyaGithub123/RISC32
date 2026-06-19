@@ -1,0 +1,18 @@
+# Generate DOT files for each module (no auto SVG conversion)
+read_verilog fetch/fetch_stage.v
+read_verilog decode/decode_stage.v
+read_verilog execute/execute_stage.v
+read_verilog memory/memory_stage.v
+read_verilog hazard/hazard_unit.v
+read_verilog risc_processor.v
+
+hierarchy -top risc_processor
+proc
+opt
+
+# Generate DOT files only (no SVG conversion by Yosys)
+show -format dot -prefix output/fetch_stage -width fetch_stage
+show -format dot -prefix output/decode_stage -width decode_stage
+show -format dot -prefix output/execute_stage -width execute_stage
+show -format dot -prefix output/memory_stage -width memory_stage
+show -format dot -prefix output/hazard_unit -width hazard_unit

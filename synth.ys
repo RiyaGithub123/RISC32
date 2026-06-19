@@ -1,0 +1,46 @@
+# ============================================================================
+# Yosys Synthesis Script for RISC-V Pipelined Processor
+# ============================================================================
+
+# --- Step 1: Read all Verilog source files ---
+read_verilog fetch/fetch_stage.v
+read_verilog decode/decode_stage.v
+read_verilog execute/execute_stage.v
+read_verilog memory/memory_stage.v
+read_verilog hazard/hazard_unit.v
+read_verilog risc_processor.v
+
+# --- Step 2: Elaborate the top-level module ---
+hierarchy -top risc_processor
+
+# --- Step 3: Process and check the design ---
+proc
+flatten
+opt
+
+# --- Step 4: Technology-independent synthesis passes ---
+# FSM extraction & optimization
+fsm
+opt
+
+# Memory inference
+memory
+opt
+
+# Technology mapping
+techmap
+opt
+
+# --- Step 5: Generate statistics ---
+stat
+
+# --- Step 6: Write synthesized output ---
+# Write the synthesized netlist in Verilog format
+write_verilog -noattr output/risc_synth.v
+
+# Write JSON netlist (can be viewed with netlistsvg)
+write_json output/risc_synth.json
+
+# --- Step 7: Show the design (generates a dot file for visualization) ---
+show -format dot -prefix output/risc_processor
+
