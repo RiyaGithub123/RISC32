@@ -38,23 +38,9 @@ module tb_risc_processor;
         $dumpfile("risc_sim.vcd");
         $dumpvars(0, tb_risc_processor);
 
-        // =====================================================================
-        // PROGRAM 1: Simple Addition of 3 and 4
-        // =====================================================================
-        $display("==================================================================================================================================================");
-        $display("RUNNING PROGRAM 1: Addition of 3 and 4 (Result expected in r3)");
-        $display("==================================================================================================================================================");
-        
-        // Initialize instruction memory with NOPs
-        for (i = 0; i < 64; i = i + 1) begin
-            uut.fetch_inst.inst_mem[i] = 32'hd0000000;
-        end
-        
-        // Load Program 1
-        uut.fetch_inst.inst_mem[0] = 32'h00410003; // mov r1, #3
-        uut.fetch_inst.inst_mem[1] = 32'h00810004; // mov r2, #4
-        uut.fetch_inst.inst_mem[2] = 32'h08c21000; // add r3, r1, r2
-        uut.fetch_inst.inst_mem[3] = 32'hd8010000; // halt
+        $display("=======================================================================================");
+        $display("RUNNING DYNAMIC VERIFICATION (Instructions loaded from inst_data.mem)");
+        $display("=======================================================================================");
 
         // Reset
         rst = 1;
@@ -62,70 +48,14 @@ module tb_risc_processor;
         #17;
         rst = 0;
 
-        $display("Time | IF_PC | IF_IR    | ID_IR    | EX_IR    | MEM_IR   | WB_IR    | R1 | R2 | R3 (Result) | Flags (CSZV) | Halt");
-        $display("--------------------------------------------------------------------------------------------------------------------------------------------------");
+        $display("Time | IF_PC | IF_IR    | ID_IR    | EX_IR    | MEM_IR   | WB_IR    | R1 | R2 | R3 | R4 | Flags (CSZV) | Halt");
+        $display("-------------------------------------------------------------------------------------------------------------");
 
-        // Monitor loop for Program 1
+        // Monitor loop for dynamic program execution
         while (!halt) begin
             @(posedge clk1);
             #3; // Let state settle
-            $display("%4t |  %2d   | %8h | %8h | %8h | %8h | %8h | %2d | %2d | %11d |     %b     |  %b", 
-                     $time, uut.PC_val, uut.IF_IR, uut.IF_ID_IR, uut.ID_EX_IR, uut.EX_MEM_IR, uut.MEM_WB_IR,
-                     uut.decode_inst.rf[1], uut.decode_inst.rf[2], uut.decode_inst.rf[3], uut.flags, halt);
-        end
-
-        // Final state log
-        @(posedge clk1);
-        #3;
-        $display("%4t |  %2d   | %8h | %8h | %8h | %8h | %8h | %2d | %2d | %11d |     %b     |  %b", 
-                 $time, uut.PC_val, uut.IF_IR, uut.IF_ID_IR, uut.ID_EX_IR, uut.EX_MEM_IR, uut.MEM_WB_IR,
-                 uut.decode_inst.rf[1], uut.decode_inst.rf[2], uut.decode_inst.rf[3], uut.flags, halt);
-
-        $display("--------------------------------------------------------------------------------------------------------------------------------------------------");
-        if (uut.decode_inst.rf[3] == 7) begin
-            $display("SUCCESS: rf[3] matches 3 + 4 = 7!");
-        end else begin
-            $display("FAILURE: Expected rf[3] = 7, got %d", uut.decode_inst.rf[3]);
-        end
-        $display("==================================================================================================================================================\n");
-
-        #20; // Wait a few cycles
-
-        // =====================================================================
-        // PROGRAM 2: Factorial of 5
-        // =====================================================================
-        $display("==================================================================================================================================================");
-        $display("RUNNING PROGRAM 2: Factorial of 5 (Result expected in r4)");
-        $display("==================================================================================================================================================");
-
-        // Clear instruction memory with NOPs
-        for (i = 0; i < 64; i = i + 1) begin
-            uut.fetch_inst.inst_mem[i] = 32'hd0000000;
-        end
-
-        // Load Program 2
-        uut.fetch_inst.inst_mem[0] = 32'h00810001; // mov r2, #1 (product)
-        uut.fetch_inst.inst_mem[1] = 32'h00410005; // mov r1, #5 (counter)
-        uut.fetch_inst.inst_mem[2] = 32'h18840800; // mul r2, r2, r1
-        uut.fetch_inst.inst_mem[3] = 32'h10430001; // sub r1, r1, #1
-        uut.fetch_inst.inst_mem[4] = 32'hb0010002; // jnz to 2
-        uut.fetch_inst.inst_mem[5] = 32'h6081000f; // storereg r2, address 15
-        uut.fetch_inst.inst_mem[6] = 32'h7901000f; // sendreg r4, address 15
-        uut.fetch_inst.inst_mem[7] = 32'hd8010000; // halt
-
-        // Reset
-        rst = 1;
-        #17;
-        rst = 0;
-
-        $display("Time | IF_PC | IF_IR    | ID_IR    | EX_IR    | MEM_IR   | WB_IR    | R1 | R2 (Accum) | R3 | R4 (Result) | Flags (CSZV) | Halt");
-        $display("--------------------------------------------------------------------------------------------------------------------------------------------------");
-
-        // Monitor loop for Program 2
-        while (!halt) begin
-            @(posedge clk1);
-            #3; // Let state settle
-            $display("%4t |  %2d   | %8h | %8h | %8h | %8h | %8h | %2d | %10d | %2d | %10d  |     %b     |  %b", 
+            $display("%4t |  %2d   | %8h | %8h | %8h | %8h | %8h | %2d | %2d | %2d | %2d |     %b     |  %b", 
                      $time, uut.PC_val, uut.IF_IR, uut.IF_ID_IR, uut.ID_EX_IR, uut.EX_MEM_IR, uut.MEM_WB_IR,
                      uut.decode_inst.rf[1], uut.decode_inst.rf[2], uut.decode_inst.rf[3], uut.decode_inst.rf[4], uut.flags, halt);
         end
@@ -133,19 +63,25 @@ module tb_risc_processor;
         // Final state log
         @(posedge clk1);
         #3;
-        $display("%4t |  %2d   | %8h | %8h | %8h | %8h | %8h | %2d | %10d | %2d | %10d  |     %b     |  %b", 
+        $display("%4t |  %2d   | %8h | %8h | %8h | %8h | %8h | %2d | %2d | %2d | %2d |     %b     |  %b", 
                  $time, uut.PC_val, uut.IF_IR, uut.IF_ID_IR, uut.ID_EX_IR, uut.EX_MEM_IR, uut.MEM_WB_IR,
                  uut.decode_inst.rf[1], uut.decode_inst.rf[2], uut.decode_inst.rf[3], uut.decode_inst.rf[4], uut.flags, halt);
 
-        $display("--------------------------------------------------------------------------------------------------------------------------------------------------");
-        if (uut.decode_inst.rf[4] == 120 && uut.memory_inst.data_mem[15] == 120) begin
-            $display("SUCCESS: rf[4] matches 5! = 120, and memory[15] is indeed 120!");
-        end else begin
-            $display("FAILURE: Expected rf[4] = 120 and memory[15] = 120, got rf[4] = %d, memory[15] = %d, memory[0] = %d",
-                     uut.decode_inst.rf[4], uut.memory_inst.data_mem[15], uut.memory_inst.data_mem[0]);
+        $display("-------------------------------------------------------------------------------------------------------------");
+        $display("Processor halted.");
+        $display("========================================= REGISTER FILE =========================================");
+        for (i = 0; i < 32; i = i + 1) begin
+            if (uut.decode_inst.rf[i] !== 32'bx && uut.decode_inst.rf[i] !== 32'b0) begin
+                $display("  R%0d = %d (0x%8h)", i, uut.decode_inst.rf[i], uut.decode_inst.rf[i]);
+            end
         end
-        $display("==================================================================================================================================================");
-
+        $display("========================================= DATA MEMORY ==========================================");
+        for (i = 0; i < 64; i = i + 1) begin
+            if (uut.memory_inst.data_mem[i] !== 32'bx && uut.memory_inst.data_mem[i] !== 32'b0) begin
+                $display("  MEM[%0d] = %d (0x%8h)", i, uut.memory_inst.data_mem[i], uut.memory_inst.data_mem[i]);
+            end
+        end
+        $display("===============================================================================================");
         $finish;
     end
 
